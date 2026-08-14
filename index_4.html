@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta Video Panosu</title>
+<style>
+:root{color-scheme:light;
+ --surface-0:#f5f4f1;--surface-1:#fcfcfb;--surface-2:#efeeea;--border:#dedcd6;
+ --text-1:#0b0b0b;--text-2:#52514e;--text-3:#807e78;
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;
+ --bar:#2a78d6;--bar-bg:#e4e2dc;--good:#1baf7a;--warn:#eda100;--bad:#e34948;}
+:root[data-theme=dark]{color-scheme:dark;
+ --surface-0:#131312;--surface-1:#1a1a19;--surface-2:#242422;--border:#33332f;
+ --text-1:#fff;--text-2:#c3c2b7;--text-3:#8c8b82;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+ --bar:#3987e5;--bar-bg:#2e2e2b;--good:#199e70;--warn:#c98500;--bad:#e66767;}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;
+ --surface-0:#131312;--surface-1:#1a1a19;--surface-2:#242422;--border:#33332f;
+ --text-1:#fff;--text-2:#c3c2b7;--text-3:#8c8b82;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+ --bar:#3987e5;--bar-bg:#2e2e2b;--good:#199e70;--warn:#c98500;--bad:#e66767;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-1);
+ font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--text-2);font-size:13px;margin:0}
+.tbtn{background:var(--surface-1);border:1px solid var(--border);color:var(--text-2);
+ border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12.5px}
+.tbtn:hover{color:var(--text-1)}
+h2.sec{font-size:15px;margin:26px 0 10px;letter-spacing:-.01em}
+h2.sec:first-child{margin-top:6px}
+
+/* ana secim */
+.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:22px 0 20px}
+.nb{text-align:left;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+ padding:15px 17px;cursor:pointer;color:var(--text-2);transition:border-color .12s}
+.nb:hover{border-color:var(--text-3)}
+.nb[aria-selected=true]{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1);color:var(--text-1)}
+.nb .t{font-size:15px;font-weight:600;color:var(--text-1);letter-spacing:-.01em}
+.nb .c{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:4px 0 1px}
+.nb .d{font-size:11.5px;color:var(--text-3);line-height:1.4}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:0 0 18px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.tile .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.tile .v{font-size:23px;font-weight:600;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
+.tile .n{font-size:11.5px;color:var(--text-2);margin-top:2px}
+
+.bar-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0;
+ padding:11px 13px;background:var(--surface-1);border:1px solid var(--border);border-radius:10px}
+.lbl{font-size:11.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.chip{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);
+ border-radius:999px;padding:5px 12px;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:var(--text-1);color:var(--surface-1);border-color:var(--text-1)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sep{flex:1}
+select{background:var(--surface-2);color:var(--text-1);border:1px solid var(--border);
+ border-radius:8px;padding:6px 10px;font-size:12.5px}
+.hint{color:var(--text-2);font-size:12.5px;margin:0 0 12px}
+
+/* kurgu semasi */
+.flow{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.fbox{border:1px solid var(--border);border-radius:10px;padding:13px 15px;background:var(--surface-2);position:relative}
+.fbox.g1{border-left:3px solid var(--s4)}.fbox.g2{border-left:3px solid var(--s1)}
+.fbox.scale{border-left:3px solid var(--s3);margin-top:12px}
+.fbox .ft{font-size:13.5px;font-weight:600}
+.fbox .fm{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;margin:3px 0 5px;letter-spacing:-.01em}
+.fbox .fd{font-size:12px;color:var(--text-2);line-height:1.55}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;
+ padding-bottom:11px;border-bottom:1px solid var(--border)}
+.fhead .h1x{font-size:13.5px;font-weight:600}
+.fhead .h2x{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.arrow{text-align:center;color:var(--text-3);font-size:15px;margin:10px 0 0}
+.split{height:6px;border-radius:3px;overflow:hidden;display:flex;margin-top:11px;background:var(--bar-bg)}
+.split i{display:block;height:100%}
+
+/* zaman cizelgesi */
+.tl{display:flex;flex-direction:column;gap:0;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tl .r{display:grid;grid-template-columns:96px 1fr 120px;gap:12px;padding:10px 15px;
+ border-top:1px solid var(--border);font-size:13px;align-items:baseline}
+.tl .r:first-child{border-top:none}
+.tl .r.key{background:var(--surface-2)}
+.tl .g{font-weight:600;font-variant-numeric:tabular-nums}
+.tl .r.key .g{color:var(--s1)}
+.tl .h{text-align:right;color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums}
+
+/* kural tablolari */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.rt{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.rt h4{margin:0 0 3px;font-size:13.5px}
+.rt .rs{font-size:11.5px;color:var(--text-3);margin-bottom:9px}
+.rt table{width:100%;border-collapse:collapse;font-size:12.5px}
+.rt td{padding:5px 0;border-top:1px solid var(--border);vertical-align:top}
+.rt tr:first-child td{border-top:none}
+.rt td:first-child{width:74px;font-weight:600;white-space:nowrap}
+.tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600}
+.t-kes{background:rgba(227,73,72,.13);color:var(--bad)}
+.t-gec,.t-devret,.t-buyut{background:rgba(27,175,122,.14);color:var(--good)}
+.t-tut,.t-bekle,.t-dur{background:rgba(237,161,0,.16);color:var(--warn)}
+.kv{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.kv td{padding:8px 15px;border-top:1px solid var(--border)}
+.kv tr:first-child td{border-top:none}
+.kv td:first-child{color:var(--text-2);width:46%}
+.kv td:last-child{font-weight:600}
+
+/* kartlar */
+.grid{display:flex;flex-direction:column;gap:10px}
+.card{display:grid;grid-template-columns:172px 1fr;gap:16px;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;padding:12px;align-items:start}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px}
+.tcard{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:10px}
+.tcard .vid{width:100%;max-height:none}
+.tcard .code{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--s1);margin-top:9px}
+.tcard .fn{font-size:12px;margin:2px 0 6px;word-break:break-word;line-height:1.4}
+.tcard .meta{font-size:11px;color:var(--text-3);border-top:1px solid var(--border);padding-top:7px;line-height:1.6}
+.vid{position:relative;width:172px;aspect-ratio:9/16;max-height:230px;border-radius:9px;overflow:hidden;
+ background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+.vid video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.ph{text-align:center;color:var(--text-3);font-size:11px;padding:10px;line-height:1.45;word-break:break-all}
+.ph b{display:block;font-size:20px;color:var(--border);margin-bottom:4px}
+.body{min-width:0;padding-top:2px}
+.rank{font-variant-numeric:tabular-nums;color:var(--text-3);font-size:12px;font-weight:600}
+.name{font-size:15.5px;font-weight:600;margin:2px 0 8px;letter-spacing:-.01em;word-break:break-word}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);
+ border:1px solid var(--border);border-radius:999px;padding:3px 9px;background:var(--surface-2);margin-right:6px}
+.badge.zero{border-color:var(--bad);color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:12px;margin:12px 0 10px}
+.st .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3)}
+.st .v{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.st .v small{font-size:11.5px;font-weight:400;color:var(--text-3);margin-left:3px}
+.track{height:7px;background:var(--bar-bg);border-radius:4px;overflow:hidden;margin-top:7px}
+.fill{height:100%;background:var(--bar);border-radius:4px}
+.fill.bad{background:var(--bad)}
+.foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:9px;
+ font-size:11.5px;color:var(--text-3);border-top:1px solid var(--border);padding-top:9px}
+a.link{color:var(--s1);text-decoration:none;font-weight:500}
+a.link:hover{text-decoration:underline}
+.note{margin-top:26px;padding:15px 17px;background:var(--surface-1);border:1px solid var(--border);
+ border-radius:10px;color:var(--text-2);font-size:12.5px}
+.note h3{margin:0 0 8px;font-size:13px;color:var(--text-1)}
+.note li{margin:4px 0}
+code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:11.5px;word-break:break-all}
+.err{padding:40px;text-align:center;color:var(--bad)}
+.hide{display:none}
+@media(max-width:640px){.card{grid-template-columns:1fr}.card .vid{width:100%;max-height:320px}
+ .frow{grid-template-columns:1fr}.tl .r{grid-template-columns:80px 1fr;}.tl .h{display:none}}
+</style></head><body>
+<div class="wrap">
+<header><div><h1>Meta Reklamları — Video Panosu</h1>
+<p class="sub" id="sub">yükleniyor…</p></div>
+<button class="tbtn" id="tg">Koyu / Açık</button></header>
+
+<div class="nav" id="nav"></div>
+<div id="view"><div class="err" style="color:var(--text-3)">Veri yükleniyor…</div></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+/* Videolar bu adresten cekilir. Baska yere tasirsan sadece bu satiri degistir. */
+const VIDEO_BASE = "https://exdtwvazmalryufrsytr.supabase.co/storage/v1/object/public/panel/";
+const DATA_URL   = "data.json";
+
+const HC={Murat:'--s1',Aycan:'--s2',Hasan:'--s3',Cevdet:'--s4'};
+const nf=new Intl.NumberFormat('tr-TR');
+const tl=v=>'₺'+nf.format(v);
+const pf=v=>(v*100).toFixed(2).replace('.',',')+'%';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+let D=null, view='test', hoca='all', sort='hasta';
+
+const VIEWS=[
+ {k:'test', t:'Test Edilen Videolar', d:'19 videoluk G1/G2 eleme kurgusu — kampanya şeması, takvim ve karar kuralları'},
+ {k:'iyi',  t:'Hasta Getiren Videolar', d:'Hastane listesiyle eşleşen videolar, getirdiği hasta sayısına göre'},
+ {k:'sifir',t:'Hasta Getirmeyen Videolar', d:'100+ başvuru almış ama hiç hasta getirmemiş videolar — bütçe kesilecek yer'}];
+
+const vurl=n=>VIDEO_BASE+encodeURIComponent(n+'.mp4');
+function videoBox(slug,yedek,cls){
+ const adlar=(yedek&&yedek!==slug)?[slug,yedek]:[slug];
+ const src=adlar.map((n,i)=>`<source src="${vurl(n)}" type="video/mp4"`+
+   (i===adlar.length-1
+     ? ` onerror="this.closest('.vid').innerHTML='<div class=ph><b>&#9654;</b>${esc(slug)}.mp4<br>henüz yüklenmedi</div>'">`
+     : `>`)).join('');
+ return `<div class="vid ${cls||''}"><video controls preload="metadata" playsinline>${src}</video></div>`;
+}
+function nav(){
+ const c={test:D.meta.test,iyi:D.meta.iyi,sifir:D.meta.sifir};
+ document.getElementById('nav').innerHTML=VIEWS.map(v=>
+  `<button class="nb" role="tab" data-v="${v.k}" aria-selected="${v.k===view}">
+    <div class="t">${v.t}</div><div class="c">${c[v.k]}</div><div class="d">${v.d}</div></button>`).join('');
+ document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>{view=b.dataset.v;nav();render();window.scrollTo({top:0,behavior:'smooth'});});
+}
+function tilesHTML(list){
+ return `<div class="tiles">`+list.map(([k,v,n])=>
+  `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join('')+`</div>`;
+}
+/* ---------- TEST GORUNUMU ---------- */
+function testView(){
+ const t=D.test, g1p=Math.round(t.g1butce/t.butce*100), g2p=100-g1p;
+ const TAGC={'KES':'kes','GEÇ':'gec','TUT':'tut','DEVRET':'devret','BEKLE':'bekle',
+              'BÜYÜT':'buyut','DUR':'dur'};
+ const tag=s=>`<span class="tag t-${TAGC[s]||'tut'}">${s}</span>`;
+ const rules=(baslik,alt,arr)=>`<div class="rt"><h4>${baslik}</h4><div class="rs">${alt}</div><table>`+
+   arr.map(([s,k])=>`<tr><td>${tag(s)}</td><td>${esc(k)}</td></tr>`).join('')+`</table></div>`;
+ return `
+ ${tilesHTML([
+  ['Test bütçesi',tl(t.butce),t.finalist+' finalist · '+t.dongu+' günlük döngü'],
+  ['Hedef CPL',tl(t.hedefCPL),'maks sürdürülebilir '+tl(t.maksCPL)],
+  ['Karar metriği',t.randevuEsik+' randevu','video başına '+nf.format(t.leadEsik)+' lead gerekiyor'],
+  ['Hedef CAC',tl(t.hedefCAC),'gerçekleşen '+tl(t.gerceklesenCAC)+' · hasta değeri '+tl(t.hastaDegeri)]])}
+
+ <h2 class="sec">Kampanya kurgusu</h2>
+ <div class="flow">
+  <div class="fhead"><span class="h1x">TEST HESABI</span><span class="h2x">${tl(t.butce)}</span></div>
+  <div class="split"><i style="width:${g1p}%;background:var(--s4)"></i><i style="width:${g2p}%;background:var(--s1)"></i></div>
+  <div class="frow">
+   <div class="fbox g1"><div class="ft">KAMPANYA 1 · TEST-G1_CTWA_ELEME</div>
+    <div class="fm">${tl(t.g1butce)} <span style="font-size:12px;color:var(--text-3);font-weight:400">%${g1p}</span></div>
+    <div class="fd">19 reklam seti · hepsi Gün 1'de eş zamanlı · ${t.g1gun} gün<br>
+     ABO · Broad · ${tl(t.g1SetGunluk)}/gün/set<br>video başına ${tl(1050)} — 7 lead beklentisi</div></div>
+   <div class="fbox g2"><div class="ft">KAMPANYA 2 · TEST-G2_CTWA_FINALIST</div>
+    <div class="fm">${tl(t.g2butce)} <span style="font-size:12px;color:var(--text-3);font-weight:400">%${g2p}</span></div>
+    <div class="fd">${t.finalist} reklam seti · hepsi Gün 8'de eş zamanlı · ${t.g2gun} gün<br>
+     Aynı Broad · ${tl(t.g2SetGunluk)}/gün/set<br>finalist başına ${tl(t.finalistDerinlik)} — ${t.leadEsik} lead → ${t.randevuEsik} randevu</div></div>
+  </div>
+  <div class="arrow">↓ Gün ${t.dongu}'de devir</div>
+  <div class="fbox scale"><div class="ft">SCALE HESABI · ayrı bütçe</div>
+   <div class="fd">+300 lead ile 500 leade tamamlanır → ${t.islemEsik} işlem doğrulaması (~${tl(45000)} scale harcaması).
+    Test bütçesi videoyu <b>seçer</b> (randevuyla), scale bütçesi <b>doğrular</b> (işlemle).</div></div>
+ </div>
+
+ <h2 class="sec">Takvim — ${t.dongu} günlük döngü</h2>
+ <div class="tl">${t.takvim.map(x=>
+   `<div class="r ${x.v?'key':''}"><span class="g">${x.g}</span><span>${esc(x.i)}</span><span class="h">${x.h}</span></div>`).join('')}</div>
+
+ <h2 class="sec">Karar kuralları</h2>
+ <div class="rules">
+  ${rules('G1 — Gün 7 (eleme)','19 videodan 3 finaliste',t.g1)}
+  ${rules('G2 — Gün 37 (devir)','randevu maliyeti hedefi '+tl(t.randevuMaliyet),t.g2)}
+  ${rules('Doğrulama — scale hesabı','500 leadde 5 işlem',t.dogrulama)}
+ </div>
+ <div class="rt" style="margin-top:12px"><h4>Finalist seçimi — Gün 7, ${t.finalist} slot</h4>
+  <div class="rs">Sadece CPL'e göre sıralamak, ucuz ama ilgisiz kitleye ulaşan videoları öne çıkarır.</div>
+  <div style="font-size:15px;font-weight:600;padding:8px 0">SKOR = Hook Rate ÷ (CPL ÷ ${t.hedefCPL})</div>
+  <div class="rs" style="margin:0">Hook Rate = 3sn izlenme ÷ gösterim · Hold Rate = %75 izlenme ÷ gösterim.
+   İkisi de Ads Manager'da özel sütun olarak kurulmalı.</div></div>
+
+ <h2 class="sec">Reklam seti ayarları <span style="font-weight:400;color:var(--text-3);font-size:12.5px">— tüm setlerde birebir aynı</span></h2>
+ <table class="kv">${t.ayar.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
+
+ <h2 class="sec">Teste giren ${D.testRows.length} video</h2>
+ <p class="hint">Her reklam seti tek videoyu taşır; hedefleme, metin ve teklif hepsinde aynı — tek değişken video.
+  WhatsApp mesajındaki köşeli parantez kodu CRM'e işlenmezse hangi videonun hasta getirdiği ölçülemez.</p>
+ <div class="tgrid">${D.testRows.map(v=>`
+  <div class="tcard">${videoBox(v.slug,v.yedek)}
+   <div class="code">${v.kod}</div>
+   <div class="fn">${esc(v.dosya)}</div>
+   <div class="meta">${esc(v.seri)} · ${tl(v.gunluk)}/gün · ${v.gun} gün<br>
+    <code>${esc(v.slug)}.mp4</code><br><code>${esc(v.wa)}</code></div></div>`).join('')}</div>`;
+}
+/* ---------- PERFORMANS GORUNUMU ---------- */
+function perfView(){
+ const m=D.meta, o=m.toplamHasta/m.toplamLead, zero=view==='sifir';
+ const tiles=zero
+  ? [['Boşa giden başvuru',nf.format(m.sifirLead),m.sifir+' video · 0 hasta'],
+     ['Eşik',m.sifirEsik+'+ başvuru',m.sifirAtlanan+' düşük hacimli video hariç'],
+     ['Toplam başvuru',nf.format(m.toplamLead),m.dosya+' form dosyası'],
+     ['İsraf payı',pf(m.sifirLead/m.toplamLead),'tüm başvuruların içinde']]
+  : [['Hastaneye giren',nf.format(m.toplamHasta),m.hastaneListesi+" hastanın "+m.toplamHasta+"'ü formlarda bulundu"],
+     ['Genel dönüşüm',pf(o),'başvuru başına hasta'],
+     ['Toplam başvuru',nf.format(m.toplamLead),m.dosya+' form dosyası · '+m.toplamVideo+' video'],
+     ['Listelenen video',m.iyi,'hasta getiren '+(m.iyi+m.dusuk)+" videonun ilk "+m.iyi+"'i"]];
+ const hint=zero
+  ? `Hiç hasta getirmemiş videolar, en çok başvuru alandan başlayarak — en üstteki en pahalıya mal olan. ${m.sifirEsik} başvurunun altındaki ${m.sifirAtlanan} video (toplam ${nf.format(m.sifirAtlananLead)} başvuru) listeye alınmadı.`
+  : `Hastane listesiyle eşleşen videolar. Tek hasta getirmiş ${m.dusuk} düşük hacimli video (${nf.format(m.dusukLead)} başvuru) listede yok — istatistiksel olarak gürültü.`;
+ return tilesHTML(tiles)+`
+  <div class="bar-controls">
+   <span class="lbl">Hoca</span><span id="chips"></span><span class="sep"></span>
+   <span class="lbl">Sırala</span>
+   <select id="sort">
+    <option value="hasta">Hasta sayısı</option><option value="oran">Dönüşüm oranı</option>
+    <option value="lead">Başvuru sayısı</option><option value="son">Hasta (son temas)</option>
+   </select></div>
+  <p class="hint">${hint}</p><div class="grid" id="grid"></div>`;
+}
+function cards(){
+ const zero=view==='sifir';
+ let rs=D.rows.filter(r=>r.grup===view&&(hoca==='all'||r.hoca===hoca));
+ const key={hasta:r=>[-r.hasta,-r.lead],oran:r=>[-(r.hasta/r.lead),-r.lead],
+            lead:r=>[-r.lead],son:r=>[-r.son,-r.lead]}[sort];
+ rs=rs.slice().sort((a,b)=>{const A=key(a),B=key(b);for(let i=0;i<A.length;i++){if(A[i]!==B[i])return A[i]-B[i]}return 0});
+ const pool=D.rows.filter(r=>r.grup===view);
+ const maxO=Math.max(...pool.map(r=>r.hasta/r.lead),1e-9), maxL=Math.max(...pool.map(r=>r.lead),1);
+ const el=document.getElementById('grid');
+ if(!rs.length){el.innerHTML='<div class="err" style="color:var(--text-3)">Bu filtrede video yok.</div>';return}
+ el.innerHTML=rs.map((r,i)=>{
+  const oran=r.hasta/r.lead, w=zero?Math.max(3,r.lead/maxL*100):Math.max(3,oran/maxO*100);
+  return `<article class="card">${videoBox(r.slug)}
+   <div class="body"><div class="rank">#${i+1}</div><div class="name">${esc(r.ad)}</div>
+    <span class="badge"><i class="dot" style="background:var(${HC[r.hoca]})"></i>${r.hoca} Hoca</span>
+    ${zero?'<span class="badge zero">hasta yok</span>':''}
+    <div class="stats">
+     <div class="st"><div class="k">Başvuru</div><div class="v">${nf.format(r.lead)}</div></div>
+     <div class="st"><div class="k">Hasta</div><div class="v">${r.hasta}${zero?'':`<small>son temas ${r.son}</small>`}</div></div>
+     <div class="st"><div class="k">Dönüşüm</div><div class="v">${pf(oran)}</div></div>
+     <div class="st"><div class="k">Varyant</div><div class="v">${r.varyant}</div></div></div>
+    <div class="track"><div class="fill${zero?' bad':''}" style="width:${w}%"></div></div>
+    <div class="foot">
+     <a class="link" href="https://adsmanager.facebook.com/adsmanager/manage/ads?selected_ad_ids=${r.adId}" target="_blank" rel="noopener">Meta'da aç ↗</a>
+     <span>${r.ilk} – ${r.son_gun}</span><span>·</span><span>${r.slug}.mp4</span></div>
+   </div></article>`}).join('');
+}
+function chips(){
+ const el=document.getElementById('chips'); if(!el)return;
+ el.innerHTML=['all','Murat','Aycan','Hasan','Cevdet'].map(h=>
+  h==='all'?`<button class="chip" data-h="all" aria-pressed="${hoca==='all'}">Hepsi</button>`
+  :`<button class="chip" data-h="${h}" aria-pressed="${hoca===h}"><i class="dot" style="background:var(${HC[h]})"></i>${h}</button>`).join(' ');
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{hoca=b.dataset.h;chips();cards()});
+}
+function render(){
+ const v=document.getElementById('view');
+ if(view==='test'){v.innerHTML=testView();}
+ else{v.innerHTML=perfView();chips();
+      document.getElementById('sort').value=sort;
+      document.getElementById('sort').onchange=e=>{sort=e.target.value;cards()};
+      cards();}
+ note();
+}
+function note(){
+ const m=D.meta;
+ document.getElementById('note').innerHTML = view==='test' ? `
+ <h3>Bu kurgunun mantığı</h3>
+ <ul>
+  <li><b>Neden randevu, neden işlem değil</b> — %1 işlem oranında video başına 5 işlem görmek ${tl(75000)} gerektirir; test bütçesiyle olmaz. 10 randevu ise ${tl(30000)} ile ölçülebilir. Test videoyu seçer, scale doğrular.</li>
+  <li><b>Neden tek kampanya, çok reklam seti</b> — video başına ayrı kampanya bütçeyi böler, hiçbir set öğrenme aşamasını tamamlayamaz; ölçtüğün şey video değil bütçe seviyesi olur.</li>
+  <li><b>Neden eş zamanlı</b> — dalga sisteminde haftalar arası CPM farkı karşılaştırmayı bozuyordu. Aynı anda yayın = aynı açık artırma koşulları. Döngü de 63 günden ${D.test.dongu} güne indi.</li>
+  <li><b>Kırmızı çizgi</b> — maks sürdürülebilir CPL ${tl(D.test.maksCPL)}. Bunu aşan video ölçeklendiğinde zarar eder.</li>
+  <li><b>En sık hata</b> — 200 leaddeki 2 işleme bakıp karar vermek. Beklenen zaten 2; 0 veya 4 görmek tamamen şans.</li>
+ </ul>` : `
+ <h3>Sayılar ne anlama geliyor</h3>
+ <ul>
+  <li><b>Hasta</b> — bu videoya başvuranlardan hastane listesinde bulunanlar. Bir hasta birden fazla videoya başvurduysa hepsine sayılır.</li>
+  <li><b>Son temas</b> — hasta sadece en son başvurduğu videoya sayılır. Çift sayım yok; bütçe kararı için bu daha doğru.</li>
+  <li><b>Varyant</b> — Meta'da aynı video adıyla oluşturulmuş ayrı reklam (ad_id) sayısı.</li>
+  <li><b>Kaynak</b> — ${m.dosya} Meta form dosyası (${nf.format(m.toplamLead)} başvuru), ${m.hastaneListesi} kişilik hastane listesiyle telefon numarası üzerinden eşleştirildi. Son veri ${m.guncelleme}.</li>
+ </ul>
+ <h3 style="margin-top:14px">Güncelleme</h3>
+ <ul>
+  <li>Videolar <code>${VIDEO_BASE}</code> adresinden çekiliyor; dosya adı kartın altında yazıyor.
+      Test videoları kaynak dosya adıyla aranır — yeniden adlandırmaya gerek yok.</li>
+  <li>Rakamlar <code>data.json</code> dosyasından okunuyor — yeni dosyayı repoya push etmen yeterli.</li>
+ </ul>`;
+}
+document.getElementById('tg').onclick=()=>{
+ const cur=document.documentElement.getAttribute('data-theme')
+   ||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+ document.documentElement.setAttribute('data-theme',cur==='dark'?'light':'dark');};
+fetch(DATA_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+ .then(d=>{D=d;
+   document.getElementById('sub').textContent=
+    `${d.meta.dosya} form dosyası · ${nf.format(d.meta.toplamLead)} başvuru · ${d.meta.hastaneListesi} kişilik hastane listesi · ${d.meta.test} video testte · son veri ${d.meta.guncelleme}`;
+   nav();render();})
+ .catch(e=>{document.getElementById('view').innerHTML=
+   `<div class="err">data.json yüklenemedi (${esc(e.message)}).<br>Dosya index.html ile aynı klasörde mi?</div>`;});
+</script></body></html>
