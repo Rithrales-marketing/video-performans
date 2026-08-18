@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta Video Panosu</title>
+<style>
+:root{color-scheme:light;
+ --surface-0:#f5f4f1;--surface-1:#fcfcfb;--surface-2:#efeeea;--border:#dedcd6;
+ --text-1:#0b0b0b;--text-2:#52514e;--text-3:#807e78;
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;
+ --bar:#2a78d6;--bar-bg:#e4e2dc;--good:#1baf7a;--warn:#eda100;--bad:#e34948;}
+:root[data-theme=dark]{color-scheme:dark;
+ --surface-0:#131312;--surface-1:#1a1a19;--surface-2:#242422;--border:#33332f;
+ --text-1:#fff;--text-2:#c3c2b7;--text-3:#8c8b82;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+ --bar:#3987e5;--bar-bg:#2e2e2b;--good:#199e70;--warn:#c98500;--bad:#e66767;}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;
+ --surface-0:#131312;--surface-1:#1a1a19;--surface-2:#242422;--border:#33332f;
+ --text-1:#fff;--text-2:#c3c2b7;--text-3:#8c8b82;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+ --bar:#3987e5;--bar-bg:#2e2e2b;--good:#199e70;--warn:#c98500;--bad:#e66767;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-1);
+ font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--text-2);font-size:13px;margin:0}
+.tbtn{background:var(--surface-1);border:1px solid var(--border);color:var(--text-2);
+ border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12.5px}
+.tbtn:hover{color:var(--text-1)}
+h2.sec{font-size:15px;margin:26px 0 10px;letter-spacing:-.01em}
+h2.sec:first-child{margin-top:6px}
+
+/* ana secim */
+.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:22px 0 20px}
+.nb{text-align:left;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+ padding:15px 17px;cursor:pointer;color:var(--text-2);transition:border-color .12s}
+.nb:hover{border-color:var(--text-3)}
+.nb[aria-selected=true]{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1);color:var(--text-1)}
+.nb .t{font-size:15px;font-weight:600;color:var(--text-1);letter-spacing:-.01em}
+.nb .c{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:4px 0 1px}
+.nb .d{font-size:11.5px;color:var(--text-3);line-height:1.4}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:0 0 18px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.tile .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.tile .v{font-size:23px;font-weight:600;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
+.tile .n{font-size:11.5px;color:var(--text-2);margin-top:2px}
+
+.bar-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0;
+ padding:11px 13px;background:var(--surface-1);border:1px solid var(--border);border-radius:10px}
+.lbl{font-size:11.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.chip{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);
+ border-radius:999px;padding:5px 12px;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:var(--text-1);color:var(--surface-1);border-color:var(--text-1)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sep{flex:1}
+select{background:var(--surface-2);color:var(--text-1);border:1px solid var(--border);
+ border-radius:8px;padding:6px 10px;font-size:12.5px}
+.hint{color:var(--text-2);font-size:12.5px;margin:0 0 12px}
+
+/* kurgu semasi */
+.flow{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.fbox{border:1px solid var(--border);border-radius:10px;padding:13px 15px;background:var(--surface-2);position:relative}
+.fbox.g1{border-left:3px solid var(--s4)}.fbox.g2{border-left:3px solid var(--s1)}
+.fbox.scale{border-left:3px solid var(--s3);margin-top:12px}
+.fbox .ft{font-size:13.5px;font-weight:600}
+.fbox .fm{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;margin:3px 0 5px;letter-spacing:-.01em}
+.fbox .fd{font-size:12px;color:var(--text-2);line-height:1.55}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;
+ padding-bottom:11px;border-bottom:1px solid var(--border)}
+.fhead .h1x{font-size:13.5px;font-weight:600}
+.fhead .h2x{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.arrow{text-align:center;color:var(--text-3);font-size:15px;margin:10px 0 0}
+.split{height:6px;border-radius:3px;overflow:hidden;display:flex;margin-top:11px;background:var(--bar-bg)}
+.split i{display:block;height:100%}
+
+/* zaman cizelgesi */
+.tl{display:flex;flex-direction:column;gap:0;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tl .r{display:grid;grid-template-columns:96px 1fr 120px;gap:12px;padding:10px 15px;
+ border-top:1px solid var(--border);font-size:13px;align-items:baseline}
+.tl .r:first-child{border-top:none}
+.tl .r.key{background:var(--surface-2)}
+.tl .g{font-weight:600;font-variant-numeric:tabular-nums}
+.tl .r.key .g{color:var(--s1)}
+.tl .h{text-align:right;color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums}
+
+/* kural tablolari */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.rt{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.rt h4{margin:0 0 3px;font-size:13.5px}
+.rt .rs{font-size:11.5px;color:var(--text-3);margin-bottom:9px}
+.rt table{width:100%;border-collapse:collapse;font-size:12.5px}
+.rt td{padding:5px 0;border-top:1px solid var(--border);vertical-align:top}
+.rt tr:first-child td{border-top:none}
+.rt td:first-child{width:74px;font-weight:600;white-space:nowrap}
+.tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600}
+.t-kes{background:rgba(227,73,72,.13);color:var(--bad)}
+.t-gec,.t-devret,.t-buyut{background:rgba(27,175,122,.14);color:var(--good)}
+.t-tut,.t-bekle,.t-dur{background:rgba(237,161,0,.16);color:var(--warn)}
+.kv{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.kv td{padding:8px 15px;border-top:1px solid var(--border)}
+.kv tr:first-child td{border-top:none}
+.kv td:first-child{color:var(--text-2);width:46%}
+.kv td:last-child{font-weight:600}
+
+/* kartlar */
+.grid{display:flex;flex-direction:column;gap:10px}
+.card{display:grid;grid-template-columns:172px 1fr;gap:16px;background:var(--surface-1);
+ border:1px solid var(--border);border-radius:12px;padding:12px;align-items:start}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px}
+.tcard{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:10px}
+.tcard .vid{width:100%;max-height:none}
+.tcard .code{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--s1);margin-top:9px}
+.tcard .fn{font-size:12px;margin:2px 0 6px;word-break:break-word;line-height:1.4}
+.tcard .meta{font-size:11px;color:var(--text-3);border-top:1px solid var(--border);padding-top:7px;line-height:1.6}
+.vid{position:relative;width:172px;aspect-ratio:9/16;max-height:230px;border-radius:9px;overflow:hidden;
+ background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+.vid video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.ph{text-align:center;color:var(--text-3);font-size:11px;padding:10px;line-height:1.45;word-break:break-all}
+.ph b{display:block;font-size:20px;color:var(--border);margin-bottom:4px}
+.body{min-width:0;padding-top:2px}
+.rank{font-variant-numeric:tabular-nums;color:var(--text-3);font-size:12px;font-weight:600}
+.name{font-size:15.5px;font-weight:600;margin:2px 0 8px;letter-spacing:-.01em;word-break:break-word}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);
+ border:1px solid var(--border);border-radius:999px;padding:3px 9px;background:var(--surface-2);margin-right:6px}
+.badge.zero{border-color:var(--bad);color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:12px;margin:12px 0 10px}
+.st .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3)}
+.st .v{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.st .v small{font-size:11.5px;font-weight:400;color:var(--text-3);margin-left:3px}
+.track{height:7px;background:var(--bar-bg);border-radius:4px;overflow:hidden;margin-top:7px}
+.fill{height:100%;background:var(--bar);border-radius:4px}
+.fill.bad{background:var(--bad)}
+.foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:9px;
+ font-size:11.5px;color:var(--text-3);border-top:1px solid var(--border);padding-top:9px}
+a.link{color:var(--s1);text-decoration:none;font-weight:500}
+a.link:hover{text-decoration:underline}
+.note{margin-top:26px;padding:15px 17px;background:var(--surface-1);border:1px solid var(--border);
+ border-radius:10px;color:var(--text-2);font-size:12.5px}
+.note h3{margin:0 0 8px;font-size:13px;color:var(--text-1)}
+.note li{margin:4px 0}
+code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:11.5px;word-break:break-all}
+.err{padding:40px;text-align:center;color:var(--bad)}
+
+/* takip tablosu */
+.tw{overflow-x:auto;background:var(--surface-1);border:1px solid var(--border);border-radius:12px}
+table.tt{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1180px}
+table.tt th{position:sticky;top:0;background:var(--surface-2);text-align:right;font-weight:600;
+ padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11.5px;
+ text-transform:uppercase;letter-spacing:.04em;color:var(--text-2)}
+table.tt th:nth-child(-n+4){text-align:left}
+table.tt td{padding:8px 10px;border-top:1px solid var(--border);text-align:right;
+ font-variant-numeric:tabular-nums;white-space:nowrap}
+table.tt td:nth-child(-n+4){text-align:left;white-space:normal}
+table.tt tbody tr:hover{background:var(--surface-2)}
+table.tt .kod{font-weight:600;color:var(--s1)}
+table.tt tfoot td{border-top:2px solid var(--border);font-weight:600;background:var(--surface-2)}
+.vlink{background:none;border:none;padding:0;font:inherit;color:var(--text-1);cursor:pointer;
+ text-align:left;display:inline-flex;align-items:center;gap:6px;line-height:1.35}
+.vlink:hover{color:var(--s1)}
+.vlink .pl{color:var(--s1);font-size:11px}
+.na{color:var(--text-3)}
+.calc{background:var(--surface-2)}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;
+ justify-content:center;z-index:50;padding:22px}
+.mo{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:14px;
+ max-width:min(420px,92vw);width:100%}
+.mo video{width:100%;max-height:72vh;border-radius:10px;background:#000;display:block}
+.mo .mt{font-size:13px;font-weight:600;margin:10px 2px 2px;word-break:break-word}
+.mo .ms{font-size:11.5px;color:var(--text-3);margin:0 2px 10px}
+.mo .mc{width:100%;padding:8px;border:1px solid var(--border);background:var(--surface-2);
+ color:var(--text-2);border-radius:8px;cursor:pointer;font-size:12.5px}
+.mo .mc:hover{color:var(--text-1)}
+.mo .ph{padding:60px 10px}
+.hide{display:none}
+@media(max-width:640px){.card{grid-template-columns:1fr}.card .vid{width:100%;max-height:320px}
+ .frow{grid-template-columns:1fr}.tl .r{grid-template-columns:80px 1fr;}.tl .h{display:none}}
+</style></head><body>
+<div class="wrap">
+<header><div><h1>Meta Reklamları — Video Panosu</h1>
+<p class="sub" id="sub">yükleniyor…</p></div>
+<button class="tbtn" id="tg">Koyu / Açık</button></header>
+
+<div class="nav" id="nav"></div>
+<div id="view"><div class="err" style="color:var(--text-3)">Veri yükleniyor…</div></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+/* Videolar bu adresten cekilir. Baska yere tasirsan sadece bu satiri degistir. */
+const VIDEO_BASE = "https://exdtwvazmalryufrsytr.supabase.co/storage/v1/object/public/panel/";
+/* Veri once Supabase'den okunur; ulasilamazsa repodaki data.json kullanilir.
+   Guncelleme: yeni data.json'i Supabase panel bucket ina yukle, baska bir sey gerekmez. */
+const DATA_URLS = [
+  VIDEO_BASE + "data.json",
+  "data.json"
+];
+
+const HC={Murat:'--s1',Aycan:'--s2',Hasan:'--s3',Cevdet:'--s4'};
+const nf=new Intl.NumberFormat('tr-TR');
+const tl=v=>'₺'+nf.format(v);
+const pf=v=>(v*100).toFixed(2).replace('.',',')+'%';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+let D=null, view='test', hoca='all', sort='hasta';
+
+const VIEWS=[
+ {k:'test', t:'Test Edilen Videolar', d:'G1/G2 eleme testindeki videoların takip tablosu — video adına tıklayınca izlenir'},
+ {k:'iyi',  t:'Hasta Getiren Videolar', d:'Hastane listesiyle eşleşen videolar, getirdiği hasta sayısına göre'},
+ {k:'sifir',t:'Hasta Getirmeyen Videolar', d:'100+ başvuru almış ama hiç hasta getirmemiş videolar — bütçe kesilecek yer'}];
+
+const vurl=n=>VIDEO_BASE+encodeURIComponent(n+'.mp4');
+/* Dosya adi Supabase'e yuklenirken degismis olabilir; sirayla denenir. */
+function adAdaylari(a){
+ const c=[];
+ (Array.isArray(a)?a:[a]).forEach(n=>{if(n&&!c.includes(n))c.push(n);});
+ c.slice().forEach(n=>{
+  const v=[n.toUpperCase(),n.toLowerCase(),
+           n.replace(/[ _]+/g,'-').toLowerCase()];
+  v.forEach(x=>{if(x&&!c.includes(x))c.push(x);});
+ });
+ return c;
+}
+function videoBox(slug,yedek,cls){
+ const adlar=adAdaylari(Array.isArray(slug)?slug:[slug,yedek]);
+ const gosterilen=Array.isArray(slug)?slug[0]:slug;
+ const src=adlar.map((n,i)=>`<source src="${vurl(n)}" type="video/mp4"`+
+   (i===adlar.length-1
+     ? ` onerror="this.closest('.vid').innerHTML='<div class=ph title=&quot;${adlar.length} ad denendi&quot;><b>&#9654;</b>${esc(gosterilen)}.mp4<br>henüz yüklenmedi</div>'">`
+     : `>`)).join('');
+ return `<div class="vid ${cls||''}"><video controls preload="metadata" playsinline>${src}</video></div>`;
+}
+function nav(){
+ const c={test:D.meta.test,iyi:D.meta.iyi,sifir:D.meta.sifir};
+ document.getElementById('nav').innerHTML=VIEWS.map(v=>
+  `<button class="nb" role="tab" data-v="${v.k}" aria-selected="${v.k===view}">
+    <div class="t">${v.t}</div><div class="c">${c[v.k]}</div><div class="d">${v.d}</div></button>`).join('');
+ document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>{view=b.dataset.v;nav();render();window.scrollTo({top:0,behavior:'smooth'});});
+}
+function tilesHTML(list){
+ return `<div class="tiles">`+list.map(([k,v,n])=>
+  `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join('')+`</div>`;
+}
+/* ---------- TEST GORUNUMU: VIDEO TAKIP TABLOSU ---------- */
+const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+function hesapla(r,e,hedefCPL){
+ const h=num(r.harcama),l=num(r.lead),j=num(r.randevu);
+ const cpl=(h!==null&&l)?h/l:null;
+ const ro=(j!==null&&l)?j/l:null;
+ const rm=(h!==null&&j)?h/j:null;
+ const hook=num(r.hook);
+ const skor=(hook!==null&&cpl)?hook/(cpl/hedefCPL):null;
+ let g1=null;
+ if(h!==null){
+  if(h>=e.g1KesHarcama&&l===0) g1='KES';
+  else if(l===0||l===null) g1='BEKLE';
+  else if(cpl>e.cplKes) g1='KES';
+  else if(cpl<=e.cplGec&&l>=e.minLead) g1='GEÇ';
+  else if(hook>=e.hookMin&&num(r.hold)>=e.holdMin) g1='TUT';
+  else g1='KES';}
+ let g2=null;
+ if(l!==null&&j!==null&&j!==0){
+  if(ro<e.randevuKes) g2='KES';
+  else if(j>=e.randevuDevret) g2='DEVRET';
+  else g2='BEKLE';}
+ return {cpl,ro,rm,skor,g1,g2};
+}
+function testView(){
+ const t=D.test,e=t.esik,R=D.testRows;
+ const f0=v=>v===null?'<span class="na">—</span>':nf.format(Math.round(v));
+ const f2=v=>v===null?'<span class="na">—</span>':v.toFixed(2).replace('.',',');
+ const fp=v=>v===null?'<span class="na">—</span>':(v*100).toFixed(1).replace('.',',')+'%';
+ const fl=v=>v===null?'<span class="na">—</span>':'₺'+nf.format(Math.round(v));
+ const TAGC={'KES':'kes','GEÇ':'gec','TUT':'tut','DEVRET':'devret','BEKLE':'bekle'};
+ const tg=s=>s?`<span class="tag t-${TAGC[s]}">${s}</span>`:'<span class="na">—</span>';
+ let T={harcama:0,gosterim:0,lead:0,randevu:0,islem:0,veri:0};
+ const tr=R.map((r,i)=>{
+  const c=hesapla(r,e,t.hedefCPL);
+  ['harcama','gosterim','lead','randevu','islem'].forEach(k=>{const v=num(r[k]); if(v!==null)T[k]+=v;});
+  if(num(r.harcama)!==null)T.veri++;
+  return `<tr>
+   <td class="kod">${r.kod}</td>
+   <td><button class="vlink" data-i="${i}"><span class="pl">▶</span>${esc(r.dosya)}</button></td>
+   <td>${r.tarih||'<span class="na">—</span>'}</td>
+   <td>${r.asama||''}</td>
+   <td>${r.harcama==null?'<span class="na">—</span>':fl(num(r.harcama))}</td>
+   <td>${f0(num(r.gosterim))}</td>
+   <td>${fp(num(r.hook))}</td>
+   <td>${fp(num(r.hold))}</td>
+   <td>${f0(num(r.lead))}</td>
+   <td>${f0(num(r.randevu))}</td>
+   <td>${f0(num(r.islem))}</td>
+   <td class="calc">${fl(c.cpl)}</td>
+   <td class="calc">${fp(c.ro)}</td>
+   <td class="calc">${fl(c.rm)}</td>
+   <td class="calc">${f2(c.skor)}</td>
+   <td class="calc">${tg(c.g1)}</td>
+   <td class="calc">${tg(c.g2)}</td>
+   <td>${esc(r.not||'')}</td></tr>`}).join('');
+ const tc=T.lead?T.harcama/T.lead:null, tro=T.lead?T.randevu/T.lead:null, trm=T.randevu?T.harcama/T.randevu:null;
+ return `<p class="hint">${R.length} video · ${t.finalist} finalist · ${tl(t.butce)} test bütçesi · yayın ${t.yayin}.
+   Karar metriği <b>randevu</b>. Gri sütunlar otomatik hesaplanır.
+   ${T.veri?'':'<b>Henüz veri girilmedi</b> — Ads Manager çıktısı geldiğinde satırlar dolacak.'}
+   Video adına tıklayınca izleyebilirsin.</p>
+  <div class="tw"><table class="tt">
+   <thead><tr>
+    <th>Video Kodu</th><th>Dosya Adı</th><th>Yayın Tarihi</th><th>Aşama</th>
+    <th>Harcama</th><th>Gösterim</th><th>Hook Rate</th><th>Hold Rate</th>
+    <th>Lead</th><th>Randevu</th><th>İşlem</th>
+    <th>CPL</th><th>Randevu %</th><th>Randevu Maliyeti</th><th>SKOR</th>
+    <th>G1 Kararı</th><th>G2 Kararı</th><th>Not</th></tr></thead>
+   <tbody>${tr}</tbody>
+   <tfoot><tr><td colspan="4">TOPLAM / ÖZET</td>
+    <td>${T.harcama?fl(T.harcama):'<span class="na">—</span>'}</td>
+    <td>${T.gosterim?f0(T.gosterim):'<span class="na">—</span>'}</td>
+    <td></td><td></td>
+    <td>${T.lead?f0(T.lead):'<span class="na">—</span>'}</td>
+    <td>${T.randevu?f0(T.randevu):'<span class="na">—</span>'}</td>
+    <td>${T.islem?f0(T.islem):'<span class="na">—</span>'}</td>
+    <td class="calc">${fl(tc)}</td><td class="calc">${fp(tro)}</td>
+    <td class="calc">${fl(trm)}</td><td colspan="4"></td></tr></tfoot>
+  </table></div>`;
+}
+function modal(i){
+ const r=D.testRows[i];
+ const ov=document.createElement('div'); ov.className='ov';
+ ov.innerHTML=`<div class="mo" role="dialog" aria-modal="true">
+   ${videoBox([r.slug,r.guvenli,r.kaynak,r.yedek],null,'mvid').replace('<div class="vid mvid">','<div class="vid mvid" style="width:100%;aspect-ratio:9/16;max-height:72vh">')}
+   <div class="mt">${esc(r.dosya)}</div>
+   <div class="ms">${r.kod} · ${esc(r.seri)}</div>
+   <button class="mc">Kapat</button></div>`;
+ const kapat=()=>{ov.remove();document.removeEventListener('keydown',esckey)};
+ const esckey=ev=>{if(ev.key==='Escape')kapat()};
+ ov.onclick=ev=>{if(ev.target===ov)kapat()};
+ ov.querySelector('.mc').onclick=kapat;
+ document.addEventListener('keydown',esckey);
+ document.body.appendChild(ov);
+ const v=ov.querySelector('video'); if(v){v.play().catch(()=>{})}
+}
+/* ---------- PERFORMANS GORUNUMU ---------- */
+function perfView(){
+ const m=D.meta, o=m.toplamHasta/m.toplamLead, zero=view==='sifir';
+ const tiles=zero
+  ? [['Boşa giden başvuru',nf.format(m.sifirLead),m.sifir+' video · 0 hasta'],
+     ['Eşik',m.sifirEsik+'+ başvuru',m.sifirAtlanan+' düşük hacimli video hariç'],
+     ['Toplam başvuru',nf.format(m.toplamLead),m.dosya+' form dosyası'],
+     ['İsraf payı',pf(m.sifirLead/m.toplamLead),'tüm başvuruların içinde']]
+  : [['Hastaneye giren',nf.format(m.toplamHasta),m.hastaneListesi+" hastanın "+m.toplamHasta+"'ü formlarda bulundu"],
+     ['Genel dönüşüm',pf(o),'başvuru başına hasta'],
+     ['Toplam başvuru',nf.format(m.toplamLead),m.dosya+' form dosyası · '+m.toplamVideo+' video'],
+     ['Listelenen video',m.iyi,'hasta getiren '+(m.iyi+m.dusuk)+" videonun ilk "+m.iyi+"'i"]];
+ const hint=zero
+  ? `Hiç hasta getirmemiş videolar, en çok başvuru alandan başlayarak — en üstteki en pahalıya mal olan. ${m.sifirEsik} başvurunun altındaki ${m.sifirAtlanan} video (toplam ${nf.format(m.sifirAtlananLead)} başvuru) listeye alınmadı.`
+  : `Hastane listesiyle eşleşen videolar. Tek hasta getirmiş ${m.dusuk} düşük hacimli video (${nf.format(m.dusukLead)} başvuru) listede yok — istatistiksel olarak gürültü.`;
+ return tilesHTML(tiles)+`
+  <div class="bar-controls">
+   <span class="lbl">Hoca</span><span id="chips"></span><span class="sep"></span>
+   <span class="lbl">Sırala</span>
+   <select id="sort">
+    <option value="hasta">Hasta sayısı</option><option value="oran">Dönüşüm oranı</option>
+    <option value="lead">Başvuru sayısı</option><option value="son">Hasta (son temas)</option>
+   </select></div>
+  <p class="hint">${hint}</p><div class="grid" id="grid"></div>`;
+}
+function cards(){
+ const zero=view==='sifir';
+ let rs=D.rows.filter(r=>r.grup===view&&(hoca==='all'||r.hoca===hoca));
+ const key={hasta:r=>[-r.hasta,-r.lead],oran:r=>[-(r.hasta/r.lead),-r.lead],
+            lead:r=>[-r.lead],son:r=>[-r.son,-r.lead]}[sort];
+ rs=rs.slice().sort((a,b)=>{const A=key(a),B=key(b);for(let i=0;i<A.length;i++){if(A[i]!==B[i])return A[i]-B[i]}return 0});
+ const pool=D.rows.filter(r=>r.grup===view);
+ const maxO=Math.max(...pool.map(r=>r.hasta/r.lead),1e-9), maxL=Math.max(...pool.map(r=>r.lead),1);
+ const el=document.getElementById('grid');
+ if(!rs.length){el.innerHTML='<div class="err" style="color:var(--text-3)">Bu filtrede video yok.</div>';return}
+ el.innerHTML=rs.map((r,i)=>{
+  const oran=r.hasta/r.lead, w=zero?Math.max(3,r.lead/maxL*100):Math.max(3,oran/maxO*100);
+  return `<article class="card">${videoBox(r.slug)}
+   <div class="body"><div class="rank">#${i+1}</div><div class="name">${esc(r.ad)}</div>
+    <span class="badge"><i class="dot" style="background:var(${HC[r.hoca]})"></i>${r.hoca} Hoca</span>
+    ${zero?'<span class="badge zero">hasta yok</span>':''}
+    <div class="stats">
+     <div class="st"><div class="k">Başvuru</div><div class="v">${nf.format(r.lead)}</div></div>
+     <div class="st"><div class="k">Hasta</div><div class="v">${r.hasta}${zero?'':`<small>son temas ${r.son}</small>`}</div></div>
+     <div class="st"><div class="k">Dönüşüm</div><div class="v">${pf(oran)}</div></div>
+     <div class="st"><div class="k">Varyant</div><div class="v">${r.varyant}</div></div></div>
+    <div class="track"><div class="fill${zero?' bad':''}" style="width:${w}%"></div></div>
+    <div class="foot">
+     <a class="link" href="https://adsmanager.facebook.com/adsmanager/manage/ads?selected_ad_ids=${r.adId}" target="_blank" rel="noopener">Meta'da aç ↗</a>
+     <span>${r.ilk} – ${r.son_gun}</span><span>·</span><span>${r.slug}.mp4</span></div>
+   </div></article>`}).join('');
+}
+function chips(){
+ const el=document.getElementById('chips'); if(!el)return;
+ el.innerHTML=['all','Murat','Aycan','Hasan','Cevdet'].map(h=>
+  h==='all'?`<button class="chip" data-h="all" aria-pressed="${hoca==='all'}">Hepsi</button>`
+  :`<button class="chip" data-h="${h}" aria-pressed="${hoca===h}"><i class="dot" style="background:var(${HC[h]})"></i>${h}</button>`).join(' ');
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{hoca=b.dataset.h;chips();cards()});
+}
+function render(){
+ const v=document.getElementById('view');
+ if(view==='test'){v.innerHTML=testView();
+      v.querySelectorAll('.vlink').forEach(b=>b.onclick=()=>modal(+b.dataset.i));}
+ else{v.innerHTML=perfView();chips();
+      document.getElementById('sort').value=sort;
+      document.getElementById('sort').onchange=e=>{sort=e.target.value;cards()};
+      cards();}
+ note();
+}
+function note(){
+ const m=D.meta;
+ document.getElementById('note').innerHTML = view==='test' ? `
+ <h3>Nasıl doldurulur</h3>
+ <ul>
+  <li><b>Beyaz sütunlar</b> (Harcama, Gösterim, Hook, Hold, Lead, Randevu, İşlem) Ads Manager ve CRM'den gelir — bana verirsin, <code>data.json</code>'a işlerim.</li>
+  <li><b>Gri sütunlar</b> otomatik: CPL, Randevu %, Randevu Maliyeti, SKOR, G1 ve G2 kararı.
+      SKOR = Hook Rate ÷ (CPL ÷ ${D.test.hedefCPL}) · G1 kesme eşiği CPL > ${tl(D.test.esik.cplKes)} · G2 devir eşiği ${D.test.esik.randevuDevret} randevu.</li>
+ </ul>` : `
+ <h3>Sayılar ne anlama geliyor</h3>
+ <ul>
+  <li><b>Hasta</b> — bu videoya başvuranlardan hastane listesinde bulunanlar. Bir hasta birden fazla videoya başvurduysa hepsine sayılır.</li>
+  <li><b>Son temas</b> — hasta sadece en son başvurduğu videoya sayılır. Çift sayım yok; bütçe kararı için bu daha doğru.</li>
+  <li><b>Varyant</b> — Meta'da aynı video adıyla oluşturulmuş ayrı reklam (ad_id) sayısı.</li>
+  <li><b>Kaynak</b> — ${m.dosya} Meta form dosyası (${nf.format(m.toplamLead)} başvuru), ${m.hastaneListesi} kişilik hastane listesiyle telefon numarası üzerinden eşleştirildi. Son veri ${m.guncelleme}.</li>
+ </ul>
+ <h3 style="margin-top:14px">Güncelleme</h3>
+ <ul>
+  <li>Videolar <code>${VIDEO_BASE}</code> adresinden çekiliyor; dosya adı kartın altında yazıyor.
+      Test videoları kaynak dosya adıyla aranır — yeniden adlandırmaya gerek yok.</li>
+  <li>Rakamlar <code>data.json</code> dosyasından okunuyor. Önce Supabase'deki <code>panel</code> bucket'ına,
+      bulunamazsa repoya bakılır — güncellemek için yeni dosyayı videoların yanına yüklemen yeterli.</li>
+ </ul>`;
+}
+document.getElementById('tg').onclick=()=>{
+ const cur=document.documentElement.getAttribute('data-theme')
+   ||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+ document.documentElement.setAttribute('data-theme',cur==='dark'?'light':'dark');};
+async function veriYukle(){
+ const hatalar=[];
+ for(const u of DATA_URLS){
+  try{
+   const r=await fetch(u+(u.includes('?')?'&':'?')+'v='+Date.now(),{cache:'no-store'});
+   if(!r.ok) throw new Error('HTTP '+r.status);
+   const d=await r.json();
+   d.__kaynak = u.startsWith('http') ? 'Supabase' : 'repo';
+   return d;
+  }catch(e){ hatalar.push(u.split('/').slice(-1)[0]+': '+e.message); }
+ }
+ throw new Error(hatalar.join(' · '));
+}
+veriYukle()
+ .then(d=>{D=d;
+   document.getElementById('sub').textContent=
+    `${d.meta.dosya} form dosyası · ${nf.format(d.meta.toplamLead)} başvuru · ${d.meta.hastaneListesi} kişilik hastane listesi · ${d.meta.test} video testte · son veri ${d.meta.guncelleme} · veri kaynağı: ${d.__kaynak}`;
+   nav();render();})
+ .catch(e=>{document.getElementById('view').innerHTML=
+   `<div class="err">data.json hiçbir kaynaktan yüklenemedi.<br>
+     <span style="color:var(--text-3);font-size:12.5px">${esc(e.message)}</span><br>
+     Supabase'deki <code>panel</code> bucket'ında veya repoda <code>data.json</code> var mı?</div>`;});
+</script></body></html>
