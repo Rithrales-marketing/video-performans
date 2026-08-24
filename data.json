@@ -15,7 +15,7 @@
   "sifirAtlananLead": 1270,
   "guncelleme": "2026-08-12",
   "test": 19,
-  "metaSenkron": "2026-08-24T11:47:01+00:00"
+  "metaSenkron": "2026-08-24T17:50:06+00:00"
  },
  "test": {
   "durum": "Yayında",
@@ -305,7 +305,7 @@
    "gosterim": 6560,
    "hook": 0.989,
    "hold": 0.0198,
-   "lead": 6,
+   "lead": 7,
    "randevu": null,
    "muayene": null,
    "islem": null,
