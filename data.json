@@ -15,7 +15,7 @@
   "sifirAtlananLead": 1270,
   "guncelleme": "2026-08-12",
   "test": 19,
-  "metaSenkron": "2026-09-08T19:56:23+00:00"
+  "metaSenkron": "2026-09-09T09:51:43+00:00"
  },
  "test": {
   "durum": "Yayında",
@@ -351,8 +351,8 @@
    "yedek": "test-v26-08-07",
    "tarih": "2026-08-14",
    "asama": "G1",
-   "harcama": 1245.5,
-   "gosterim": 18041,
+   "harcama": 1245.58,
+   "gosterim": 18042,
    "hook": 0.966,
    "hold": 0.0512,
    "lead": 21,
@@ -655,7 +655,7 @@
    "gosterim": 9207,
    "hook": 0.9861,
    "hold": 0.0186,
-   "lead": 5,
+   "lead": 6,
    "randevu": null,
    "muayene": null,
    "islem": null,
